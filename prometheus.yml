@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 5s # Collects infrastructure metrics every 5 seconds for near real-time feedback
+  evaluation_interval: 5s
+scrape_configs:
+  # 1. Host Infrastructure Telemetry (CPU, RAM, Disk utilization)
+  - job_name: 'node-metrics'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # 2. Messaging Pipeline Observability (Consumer Lag, Message counts)
+  - job_name: 'kafka-metrics'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+
+  # 3. Distributed Database Telemetry: Scrapes metrics via community Elasticsearch Exporter
+  - job_name: 'elasticsearch-metrics'
+    static_configs:
+      - targets: ['elasticsearch-exporter:9114']
