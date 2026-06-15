@@ -4,7 +4,7 @@ import random
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
-KAFKA_BOOTSTRAP_SERVERS = 'kafka-broker:9092' 
+KAFKA_BOOTSTRAP_SERVERS = ['kafka1:9092', 'kafka2:9092', 'kafka3:9092'] 
 TOPIC_NAME = 'app-logs'
 
 print("Initializing Kafka Producer...", flush=True)
@@ -13,7 +13,7 @@ producer = None
 while True:
     try:
         producer = KafkaProducer(
-            bootstrap_servers=[KAFKA_BOOTSTRAP_SERVERS],
+            bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
             value_serializer=lambda v: json.dumps(v).encode('utf-8'),
             request_timeout_ms=5000
         )

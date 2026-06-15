@@ -1,0 +1,70 @@
+{
+    "annotations": {
+        "list": []
+    },
+    "panels": [
+        {
+            "type": "graph",
+            "title": "Kafka Under Replicated Partitions",
+            "targets": [
+                {
+                    "expr": "kafka_server_replicamanager_underreplicatedpartitions"
+                }
+            ],
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 8
+            }
+        },
+        {
+            "type": "graph",
+            "title": "Consumer Lag",
+            "targets": [
+                {
+                    "expr": "kafka_consumer_group_lag"
+                }
+            ],
+            "gridPos": {
+                "x": 12,
+                "y": 0,
+                "w": 12,
+                "h": 8
+            }
+        },
+        {
+            "type": "graph",
+            "title": "Broker CPU Usage",
+            "targets": [
+                {
+                    "expr": "process_cpu_seconds_total"
+                }
+            ],
+            "gridPos": {
+                "x": 0,
+                "y": 8,
+                "w": 12,
+                "h": 8
+            }
+        },
+        {
+            "type": "graph",
+            "title": "Elasticsearch Indexing Rate",
+            "targets": [
+                {
+                    "expr": "rate(elasticsearch_indices_indexing_index_total[1m])"
+                }
+            ],
+            "gridPos": {
+                "x": 12,
+                "y": 8,
+                "w": 12,
+                "h": 8
+            }
+        }
+    ],
+    "schemaVersion": 38,
+    "title": "Kafka Observability Dashboard",
+    "version": 1
+}

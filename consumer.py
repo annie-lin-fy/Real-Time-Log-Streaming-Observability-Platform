@@ -1,3 +1,4 @@
+import os
 import json
 import time
 import warnings
@@ -9,8 +10,8 @@ from datetime import datetime, timezone
 # CONFIG
 # =========================
 TOPIC_NAME = "app-logs"
-KAFKA_BOOTSTRAP_SERVERS = "kafka-broker:9092"
-ELASTICSEARCH_SERVER = "http://elasticsearch:9200"
+KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka1:9092,kafka2:9092,kafka3:9092").split(",")
+ELASTICSEARCH_SERVER = os.getenv("ELASTICSEARCH_SERVER", "http://elasticsearch:9200")
 
 warnings.filterwarnings("ignore")
 
@@ -47,7 +48,7 @@ while True:
     try:
         consumer = KafkaConsumer(
             TOPIC_NAME,
-            bootstrap_servers=[KAFKA_BOOTSTRAP_SERVERS],
+            bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
             group_id="app-log-final-group",
             auto_offset_reset="earliest",
             enable_auto_commit=True,
