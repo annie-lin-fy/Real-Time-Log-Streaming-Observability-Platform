@@ -104,8 +104,8 @@ A pre-built dashboard definition is included in `generate_dashbord.json` with th
 
 | Panel | PromQL Query |
 |---|---|
-| Kafka Under-Replicated Partitions | `kafka_server_replicamanager_underreplicatedpartitions` |
-| Consumer Lag | `kafka_consumer_group_lag` |
+| Kafka Under-Replicated Partitions | `kafka_topic_partition_under_replicated_partition` |
+| Consumer Lag | `kafka_consumergroup_lag` |
 | Broker CPU Usage | `process_cpu_seconds_total` |
 | Elasticsearch Indexing Rate | `rate(elasticsearch_indices_indexing_index_total[1m])` |
 
