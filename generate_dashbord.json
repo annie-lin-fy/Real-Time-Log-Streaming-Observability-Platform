@@ -8,7 +8,7 @@
             "title": "Kafka Under Replicated Partitions",
             "targets": [
                 {
-                    "expr": "kafka_server_replicamanager_underreplicatedpartitions"
+                    "expr": "kafka_topic_partition_under_replicated_partition"
                 }
             ],
             "gridPos": {
