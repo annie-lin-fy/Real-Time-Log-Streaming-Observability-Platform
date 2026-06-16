@@ -1,10 +1,12 @@
 import json
+import os
 import time
 import random
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
-KAFKA_BOOTSTRAP_SERVERS = ['kafka1:9092', 'kafka2:9092', 'kafka3:9092'] 
+_servers = os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:19092,localhost:19093,localhost:19094')
+KAFKA_BOOTSTRAP_SERVERS = _servers.split(',')
 TOPIC_NAME = 'app-logs'
 
 print("Initializing Kafka Producer...", flush=True)
@@ -15,7 +17,8 @@ while True:
         producer = KafkaProducer(
             bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
             value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-            request_timeout_ms=5000
+            request_timeout_ms=30000,
+            max_block_ms=30000
         )
         print("Kafka Producer successfully initialized!", flush=True)
         break
@@ -38,7 +41,7 @@ while True:
     
     try:
         future = producer.send(TOPIC_NAME, value=log_entry)
-        record_metadata = future.get(timeout=5)
+        record_metadata = future.get(timeout=30)
         print(f"Sent successfully to topic: {record_metadata.topic}, partition: {record_metadata.partition}", flush=True)
     except Exception as e:
         print(f"Failed to send log entry: {e}", flush=True)

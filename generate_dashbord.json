@@ -23,7 +23,7 @@
             "title": "Consumer Lag",
             "targets": [
                 {
-                    "expr": "kafka_consumer_group_lag"
+                    "expr": "kafka_consumergroup_lag"
                 }
             ],
             "gridPos": {
