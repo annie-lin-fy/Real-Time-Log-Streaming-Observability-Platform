@@ -51,13 +51,12 @@ while True:
             bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
             group_id="app-log-final-group",
             auto_offset_reset="earliest",
-            enable_auto_commit=True,
+            enable_auto_commit=False,
 
             # stability (IMPORTANT for KRaft)
             session_timeout_ms=45000,
             heartbeat_interval_ms=10000,
 
-            # FIX: auto JSON decode
             value_deserializer=lambda m: json.loads(m.decode("utf-8"))
         )
 
@@ -101,7 +100,7 @@ try:
                 )
 
                 # =========================
-                # index to ES
+                # index to ES — commit offset only on success
                 # =========================
                 try:
                     resp = es.index(
@@ -109,9 +108,10 @@ try:
                         document=log_entry
                     )
                     print(f"✅ ES indexed: {resp['_id']}", flush=True)
+                    consumer.commit()
 
                 except Exception as e:
-                    print(f"❌ ES error: {e}", flush=True)
+                    print(f"❌ ES error (offset NOT committed, will retry): {e}", flush=True)
 
         # =========================
         # idle detection

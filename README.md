@@ -24,8 +24,9 @@ A containerized log streaming pipeline that generates mock application logs, str
 | Service | Role |
 |---|---|
 | `kafka1`, `kafka2`, `kafka3` | 3-node Kafka cluster in KRaft mode (combined broker + controller); topic `app-logs` with replication factor 3 |
+| `kafka-init` | One-shot job: creates `app-logs` topic (3 partitions, RF=3) after all brokers pass health checks; exits on completion |
 | `kafka-ui` | Web dashboard for browsing Kafka topics and messages |
-| `log-consumer` | Consumes from Kafka, normalizes timestamps, indexes documents to Elasticsearch |
+| `log-consumer` | Consumes from Kafka, normalizes timestamps, indexes documents to Elasticsearch; restarts automatically on failure |
 | `elasticsearch` | Stores logs in the `application-logs` index (single-node, security disabled) |
 | `kafka-exporter` | Exports Kafka broker and consumer-lag metrics for Prometheus |
 | `node-exporter` | Exports host CPU, RAM, and disk metrics |
@@ -102,14 +103,36 @@ The consumer enriches entries with an `@timestamp` field (UTC ISO 8601) before i
 
 A pre-built dashboard definition is included in `generate_dashbord.json` with the following panels:
 
-| Panel | PromQL Query |
-|---|---|
-| Kafka Under-Replicated Partitions | `kafka_topic_partition_under_replicated_partition` |
-| Consumer Lag | `kafka_consumergroup_lag` |
-| Broker CPU Usage | `process_cpu_seconds_total` |
-| Elasticsearch Indexing Rate | `rate(elasticsearch_indices_indexing_index_total[1m])` |
+| Panel | PromQL Query | Source | Thresholds |
+|---|---|---|---|
+| Kafka Under-Replicated Partitions | `sum(kafka_topic_partition_under_replicated_partition) by (topic)` | `kafka-exporter` | 0 = green, >0 = red |
+| Consumer Lag | `sum by (consumergroup) (kafka_consumergroup_lag)` | `kafka-exporter` | 0–99 green, 100 yellow, 1 000 orange, 5 000 red |
+| Active Broker Count | `kafka_brokers` | `kafka-exporter` | 3 = green, 2 = yellow, 1 = orange, 0 = red |
+| Elasticsearch Indexing Rate | `rate(elasticsearch_indices_indexing_index_total[1m])` | `elasticsearch-exporter` | — |
+
+> **Note:** Per-process Kafka broker CPU (`process_cpu_seconds_total`) is not available in this setup — it requires a JMX exporter. **Active Broker Count** (`kafka_brokers`) is used instead as a more actionable cluster-health signal.
 
 Import it via the Grafana UI (**Dashboards → Import → Upload JSON file**).
+
+## Anomaly Simulation
+
+To simulate a **consumer lag & processing bottleneck**:
+
+```bash
+# Freeze the consumer — Kafka keeps receiving logs, lag accumulates
+docker pause log-consumer
+
+# Observe in Grafana:
+#   Consumer Lag:              climbs steadily → peaks at session timeout (~45 s)
+#   ES Indexing Rate:          drops toward 0
+#   Active Broker Count:       stays at 3  (Kafka is healthy)
+#   Under-Replicated Partitions: stays at 0  (no broker issue)
+
+# Restore — consumer drains backlog, ES rate bursts back to normal
+docker unpause log-consumer
+```
+
+This scenario demonstrates that rising consumer lag + falling ES rate with healthy broker metrics points to a **consumer-side bottleneck**, not a broker or replication failure.
 
 ## Project Structure
 
